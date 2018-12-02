@@ -47,10 +47,11 @@ type ComplexityRoot struct {
 	}
 
 	Todo struct {
-		Id   func(childComplexity int) int
-		Text func(childComplexity int) int
-		Done func(childComplexity int) int
-		User func(childComplexity int) int
+		Id    func(childComplexity int) int
+		Text  func(childComplexity int) int
+		Done  func(childComplexity int) int
+		User  func(childComplexity int) int
+		Title func(childComplexity int) int
 	}
 
 	User struct {
@@ -185,6 +186,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Todo.User(childComplexity), true
+
+	case "Todo.title":
+		if e.complexity.Todo.Title == nil {
+			break
+		}
+
+		return e.complexity.Todo.Title(childComplexity), true
 
 	case "User.id":
 		if e.complexity.User.Id == nil {
@@ -499,6 +507,11 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "title":
+			out.Values[i] = ec._Todo_title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -601,6 +614,29 @@ func (ec *executionContext) _Todo_user(ctx context.Context, field graphql.Collec
 	rctx.Result = res
 
 	return ec._User(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Todo_title(ctx context.Context, field graphql.CollectedField, obj *Todo) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Todo",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
 }
 
 var userImplementors = []string{"User"}
@@ -2050,6 +2086,7 @@ type Todo {
   text: String!
   done: Boolean!
   user: User!
+  title: String!
 }
 
 type User {
@@ -2068,5 +2105,6 @@ input NewTodo {
 
 type Mutation {
   createTodo(input: NewTodo!): Todo!
-}`},
+}
+`},
 )
