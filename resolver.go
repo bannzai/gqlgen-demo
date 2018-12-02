@@ -24,5 +24,18 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input NewTodo) (Todo,
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Todos(ctx context.Context) ([]Todo, error) {
-	return []Todo{Todo{ID: "1"}, Todo{ID: "2"}, Todo{ID: "3"}}, nil
+	return []Todo{
+		Todo{
+			ID:    "1",
+			Title: "First",
+		},
+		Todo{
+			ID:    "2",
+			Title: "Second",
+		},
+		Todo{
+			ID:    "3",
+			Title: "Third",
+		},
+	}, nil
 }
